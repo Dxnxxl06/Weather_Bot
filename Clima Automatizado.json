@@ -1,0 +1,196 @@
+{
+  "name": "Clima Automatizado",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-5-NANO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Genera un mensaje corto y amigable para enviar por Telegram con el siguiente clima:\n\n{{$json[\"mensaje\"]}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2368,
+        -160
+      ],
+      "id": "62d80865-2ab0-40ef-bec9-933b5fda9bf7",
+      "name": "Se crea mendaje texto con IA",
+      "credentials": {
+        "openAiApi": {
+          "id": "e07InDrLX5Kvcynx",
+          "name": "Cuenta Nueva"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1927214440",
+        "text": "={{ $json.output[0].content[0].text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2704,
+        -160
+      ],
+      "id": "66508acb-ad89-48ac-807c-50867d8a022d",
+      "name": "Envia mensaje bot telegram",
+      "webhookId": "17169139-951d-4cfe-8c4b-1c5e78796c77",
+      "credentials": {
+        "telegramApi": {
+          "id": "Xz6Hhb5Cn5HhV0DD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ciudades = [\n  { ciudad: \"Bucaramanga\", lat: 7.125,  lon: -73.1198 },\n  { ciudad: \"Bogotá\",      lat: 4.711,  lon: -74.0721 },\n  { ciudad: \"Medellín\",    lat: 6.2442, lon: -75.5812 },\n  { ciudad: \"Cali\",        lat: 3.4516, lon: -76.5320 }\n];\n\nreturn ciudades.map(c => ({ json: c }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        -160
+      ],
+      "id": "1fade6a9-5944-42da-b57b-b160e4073b2b",
+      "name": "Dar data clima"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        1888,
+        -160
+      ],
+      "id": "474cb5ac-283b-46dd-a177-81cfe06b31e3",
+      "name": "Trigger ejecuta 1h"
+    },
+    {
+      "parameters": {
+        "jsCode": "const weather = $json.current_weather;\n\nreturn [\n{\n  temperatura: weather.temperature,\n  viento: weather.windspeed,\n  mensaje: `Temperatura actual ${weather.temperature}°C con viento de ${weather.windspeed} km/h`\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        -384
+      ],
+      "id": "05546ce0-84f8-467e-be34-14d035e243b9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=7.125&longitude=-73.1198&current_weather=true",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2144,
+        -368
+      ],
+      "id": "c102426e-f113-4f5a-b06f-8bb8ec8b6bf1",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "Se crea mendaje texto con IA": [
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0458273f8f904f750069a9aefed4808190ae50ed205b8590d2",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "¡Hola! Clima actual: 24.9°C con viento ligero de 5.8 km/h. ¡Perfecto para salir a disfrutar!"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Se crea mendaje texto con IA": {
+      "main": [
+        [
+          {
+            "node": "Envia mensaje bot telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dar data clima": {
+      "main": [
+        [
+          {
+            "node": "Se crea mendaje texto con IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger ejecuta 1h": {
+      "main": [
+        [
+          {
+            "node": "Dar data clima",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2c7ac173-1d52-422d-9db9-4f4ed69c65ad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "308ce719a92085626b92362155505cb63e39f88d9d93510835c3846ec4185109"
+  },
+  "id": "dxxWleF7PrziZPq9",
+  "tags": []
+}
